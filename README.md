@@ -43,7 +43,7 @@
 | **Linux** | `x86_64` |  Полная поддержка | Проверено на Ubuntu, Debian, Arch, Fedora. Нативный USB (`nusb`) и `spd_dump`. |
 | **Linux** | `ARM64 (aarch64)` |  Полная поддержка | Raspberry Pi 4/5, Orange Pi, ноутбуки на ARM. Собирается нативно: `cargo build`. |
 | **Windows** | `x86_64` |  Полная поддержка | Windows 10/11. Поддержка `spd_dump.exe`, `Channel9.dll`, драйверов `SPRD U2S Diag`. |
-| **Windows** | `ARM64` |  Работает | Windows 11 on ARM (Snapdragon X Elite / Surface) через встроенную x86-эмуляцию для `spd_dump.exe`. |
+| **Windows** | `ARM64 (aarch64)` | 🚀 Нативная поддержка | Windows 11 on ARM (Snapdragon X Elite / Surface Pro 11). Нативный ARM64 `unisoc.exe` + поддержка драйверов. |
 | **macOS** | `Apple Silicon (M1–M4)` / `Intel` |  Поддерживается (Beta) | Работает через IOKit без root. Требуется компиляция `spd_dump` под macOS и USB 2.0 хаб. |
 | **Android** | `ARM64 (Termux)` |  Поддерживается (Root) | Возможность прошивать один телефон с другого через USB-OTG переходник! |
 

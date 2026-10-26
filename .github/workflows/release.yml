@@ -37,6 +37,11 @@ jobs:
             target_name: windows-x86_64
             binary_name: unisoc.exe
             archive_ext: zip
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+            target_name: windows-arm64
+            binary_name: unisoc.exe
+            archive_ext: zip
           - os: macos-latest
             target: aarch64-apple-darwin
             target_name: macos-aarch64

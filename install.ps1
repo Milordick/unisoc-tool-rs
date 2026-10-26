@@ -15,7 +15,12 @@ Write-Host "          Spreadtrum / Unisoc Service Tool (Rust)               " -F
 Write-Host "⚡ ========================================================= ⚡" -ForegroundColor Cyan
 Write-Host ""
 
-Write-Host "[1/4] Поиск последнего релиза на GitHub ($Repo)..." -ForegroundColor Cyan
+$Arch = "x86_64"
+if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64" -or $env:PROCESSOR_ARCHITEW6432 -eq "ARM64") {
+    $Arch = "arm64"
+}
+
+Write-Host "[1/4] Поиск последнего релиза на GitHub ($Repo) для Windows ($Arch)..." -ForegroundColor Cyan
 $ApiUrl = "https://api.github.com/repos/$Repo/releases/latest"
 $Release = $null
 
@@ -30,14 +35,20 @@ $TagName = "latest"
 
 if ($Release -and $Release.assets) {
     $TagName = $Release.tag_name
-    $Asset = $Release.assets | Where-Object { $_.name -like "*windows-x86_64.zip*" } | Select-Object -First 1
+    # Search for matching architecture (windows-arm64 or windows-x86_64)
+    $TargetAsset = "windows-$Arch.zip"
+    $Asset = $Release.assets | Where-Object { $_.name -like "*$TargetAsset*" } | Select-Object -First 1
+    if (-not $Asset -and $Arch -eq "arm64") {
+        Write-Host "Нативная сборка Windows ARM64 не найдена, используем x86_64 с эмуляцией..." -ForegroundColor Yellow
+        $Asset = $Release.assets | Where-Object { $_.name -like "*windows-x86_64.zip*" } | Select-Object -First 1
+    }
     if ($Asset) {
         $ZipUrl = $Asset.browser_download_url
     }
 }
 
 if (-not $ZipUrl) {
-    $ZipUrl = "https://github.com/$Repo/releases/download/$TagName/unisoc-tool-windows-x86_64.zip"
+    $ZipUrl = "https://github.com/$Repo/releases/download/$TagName/unisoc-tool-windows-$Arch.zip"
 }
 
 $TempZip = "$env:TEMP\unisoc-tool-windows.zip"
