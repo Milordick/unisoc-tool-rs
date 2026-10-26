@@ -1,16 +1,24 @@
+<div align="center">
+
+<img src="assets/unisoc-tool-rs-logo-lock.svg" width="160" height="160" alt="unisoc-tool-rs logo" />
+
 # ⚡ unisoc-tool-rs
 
 **Cross-Platform (Linux, Windows, macOS, Android/ARM64) Service, Flashing & Diagnostic Tool for Unisoc / Spreadtrum Devices**  
-*Кроссплатформенный (Linux, Windows, macOS, Android/ARM64) сервисный инструмент для прошивки, диагностики и обслуживания смартфонов на базе процессоров Unisoc / Spreadtrum.*
+*Кроссплатформенный инструмент для прошивки, диагностики и обслуживания смартфонов на базе процессоров Unisoc / Spreadtrum.*
 
-[![Rust](https://img.shields.io/badge/Language-Rust_2021-orange.svg)](https://www.rust-lang.org/)
-[![Platform](https://img.shields.io/badge/Platform-Linux_%7C_Windows_%7C_macOS_%7C_Android-blue.svg)](#)
-[![Arch](https://img.shields.io/badge/Architecture-x86__64_%7C_arm64_%7C_armv7-purple.svg)](#)
-[![CI/CD](https://github.com/Milordick/unisoc-tool-rs/actions/workflows/release.yml/badge.svg)](https://github.com/Milordick/unisoc-tool-rs/actions)
-[![Status](https://img.shields.io/badge/Status-Beta_%2F_Experimental-red.svg)](#)
-[![License](https://img.shields.io/badge/License-GPL--3.0-green.svg)](#-лицензия--license)
+<p align="center">
+  <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Language-Rust_2021-orange.svg" alt="Rust"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Platform-Linux_%7C_Windows_%7C_macOS_%7C_Android-blue.svg" alt="Platform"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Architecture-x86__64_%7C_arm64_%7C_armv7-purple.svg" alt="Arch"></a>
+  <a href="https://github.com/Milordick/unisoc-tool-rs/actions"><img src="https://github.com/Milordick/unisoc-tool-rs/actions/workflows/release.yml/badge.svg" alt="CI/CD"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Status-Beta_%2F_Experimental-red.svg" alt="Status"></a>
+  <a href="#-лицензия--license"><img src="https://img.shields.io/badge/License-GPL--3.0-green.svg" alt="License"></a>
+</p>
 
-🌍 **[Русская документация](#-описание-проекта-ru)** | **[English Documentation](#-project-overview-en)**
+### 🌍 [🇷🇺 Русская документация](#-описание-проекта-ru) &bull; [🇬🇧 English Documentation](#-project-overview-en)
+
+</div>
 
 ---
 
@@ -26,7 +34,7 @@
 
 ---
 
-## 🇷🇺 Описание проекта (RU)
+<h2 align="center">🇷🇺 Описание проекта (RU)</h2>
 
 **`unisoc-tool-rs`** — это высокопроизводительный инструмент на языке **Rust** с интерактивным терминальным интерфейсом (**TUI**) и режимом командной строки (**CLI**) для низкоуровневой работы с устройствами **Unisoc (Spreadtrum)** в режимах **BootROM (`SPRD3`)**, **FDL1** и **FDL2**.
 
@@ -34,7 +42,33 @@
 
 ---
 
-### 🖥️ Поддерживаемые архитектуры и операционные системы
+<h3 align="center">⚡ Быстрая установка в 1 команду (Recommended)</h3>
+
+Умный скрипт автоматически определит вашу операционную систему (`Linux`, `macOS`, `Android/Termux`, `Windows`), архитектуру процессора (`x86_64`, `arm64/aarch64`), скачает последнюю скомпилированную версию с GitHub Actions, установит необходимые файлы загрузчиков `loaders/` и добавит `unisoc` в PATH.
+
+#### 🐧 Linux / 🍏 macOS / 📱 Android (Termux):
+```bash
+curl -fsSL https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.sh | bash
+```
+
+#### 🪟 Windows (PowerShell):
+```powershell
+irm https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.ps1 | iex
+```
+
+---
+
+<h3 align="center">🔄 Встроенное самообновление (Self-Updater)</h3>
+
+В программу встроен механизм автоматического обновления. Для проверки и установки последней версии с GitHub достаточно выполнить:
+```bash
+unisoc update
+```
+*(или `unisoc update --force` для принудительной переустановки)*
+
+---
+
+<h3 align="center">🖥️ Поддерживаемые архитектуры и операционные системы</h3>
 
 Инструмент компилируется и работает практически на любом современном процессоре и ОС:
 
@@ -71,7 +105,7 @@
 
 ---
 
-### ✨ Основные возможности
+<h3 align="center">✨ Основные возможности</h3>
 
 1. **Двойной транспортный движок (Dual Engine)**:
    - **Интеграция с `spd_dump` / `spd_dump.exe`**: полная поддержка обхода проверки подписи RSA в BROM (`exec_addr 0x65015f08` / `custom_exec_no_verify_65015f08.bin`, CVE-2022-38694), хендшейка `Da_Info (0x96)` и работы с разблокированными загрузчиками `fdl1-dl.bin` / `fdl2-dl.bin` (без ошибки `0x00fe` от SLA-блокировки Transsion).
@@ -92,7 +126,7 @@
 
 ---
 
-### 📱 Поддерживаемые процессоры и устройства
+<h3 align="center">📱 Поддерживаемые процессоры и устройства</h3>
 
 Встроенная база (`src/devices.rs`) включает свыше 48 моделей смартфонов:
 
@@ -105,33 +139,7 @@
 
 ---
 
-### ⚡ Быстрая установка в 1 команду (Recommended)
-
-Умный скрипт автоматически определит вашу операционную систему (`Linux`, `macOS`, `Android/Termux`, `Windows`), архитектуру процессора (`x86_64`, `arm64/aarch64`), скачает последнюю скомпилированную версию с GitHub Actions, установит необходимые файлы загрузчиков `loaders/` и добавит `unisoc` в PATH.
-
-#### 🐧 Linux / 🍏 macOS / 📱 Android (Termux):
-```bash
-curl -fsSL https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.sh | bash
-```
-
-#### 🪟 Windows (PowerShell):
-```powershell
-irm https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.ps1 | iex
-```
-
----
-
-### 🔄 Встроенное самообновление (Self-Updater)
-
-В программу встроен механизм автоматического обновления. Для проверки и установки последней версии с GitHub достаточно выполнить:
-```bash
-unisoc update
-```
-*(или `unisoc update --force` для принудительной переустановки)*
-
----
-
-### 🛠️ Ручная сборка из исходников
+<h3 align="center">🛠️ Ручная сборка из исходников</h3>
 
 ```bash
 # Клонирование репозитория
@@ -166,7 +174,7 @@ loaders/
 ---
 ---
 
-## 🇬🇧 Project Overview (EN)
+<h2 align="center">🇬🇧 Project Overview (EN)</h2>
 
 **`unisoc-tool-rs`** is an open-source, memory-safe, cross-platform service, flashing, and diagnostics suite written in **Rust** for **Unisoc / Spreadtrum** SoC devices. It supports Linux, Windows, macOS, and Android (ARM64/Termux), featuring both an interactive **TUI** and a scriptable **CLI**.
 
@@ -178,7 +186,26 @@ loaders/
 
 ---
 
-### 💻 Architecture & OS Compatibility Matrix
+<h3 align="center">⚡ One-Line Quick Install</h3>
+
+#### Linux / macOS / Android (Termux):
+```bash
+curl -fsSL https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.sh | bash
+```
+
+#### Windows (PowerShell):
+```powershell
+irm https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.ps1 | iex
+```
+
+#### Self-Update:
+```bash
+unisoc update
+```
+
+---
+
+<h3 align="center">💻 Architecture & OS Compatibility Matrix</h3>
 
 - **Linux (`x86_64`, `ARM64`)**: Native zero-driver bulk USB access via `nusb` + full `spd_dump` integration.
 - **Windows (`x86_64`, `ARM64`)**: Full support for Spreadtrum `SPRD U2S Diag` COM drivers, `spd_dump.exe`, `Channel9.dll`, and `Channel.ini`.
@@ -198,26 +225,7 @@ loaders/
 
 ---
 
-### ⚡ One-Line Quick Install
-
-#### Linux / macOS / Android (Termux):
-```bash
-curl -fsSL https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.sh | bash
-```
-
-#### Windows (PowerShell):
-```powershell
-irm https://raw.githubusercontent.com/Milordick/unisoc-tool-rs/main/install.ps1 | iex
-```
-
-#### Self-Update:
-```bash
-unisoc update
-```
-
----
-
-## 🤝 Благодарности и используемые наработки (Credits & Attribution)
+<h2 align="center">🤝 Благодарности и используемые наработки (Credits & Attribution)</h2>
 
 Проект создан на основе исследований безопасности, открытых наработок сообщества и результатов обратной разработки:
 
@@ -238,7 +246,7 @@ unisoc update
 
 ---
 
-## 📜 Лицензия / License
+<h2 align="center">📜 Лицензия / License</h2>
 
 Этот проект распространяется под лицензией **GNU General Public License v3.0 (GPL-3.0)**.  
 Исходный код открыт для изучения, аудита и модификаций.

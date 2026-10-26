@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>unisoc-tool-rs logo — open lock, USB-C keyhole</title>
+  <!-- Sleek rounded squircle background for high contrast in both dark and light themes -->
+  <rect width="512" height="512" rx="96" fill="#0f172a" stroke="#1e293b" stroke-width="4"/>
+  <!-- Open padlock: the unlocked bootloader. One continuous rounded stroke, white for dark backgrounds. -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <!-- body -->
+    <rect x="156" y="236" width="200" height="168" rx="44"/>
+    <!-- shackle, swung open: hinged on the left, free end kicked up to the right -->
+    <path d="M196 240 V172 A60 60 0 0 1 316 172 L348 132"/>
+  </g>
+  <!-- Keyhole in the shape of a USB-C port: the tool talks to the phone over USB -->
+  <rect x="224" y="300" width="64" height="36" rx="18" fill="#D71921"/>
+</svg>
