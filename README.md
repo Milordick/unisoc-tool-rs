@@ -47,6 +47,17 @@
 | **macOS** | `Apple Silicon (M1–M4)` / `Intel` |  Поддерживается (Beta) | Работает через IOKit без root. Требуется компиляция `spd_dump` под macOS и USB 2.0 хаб. |
 | **Android** | `ARM64 (Termux)` |  Поддерживается (Root) | Возможность прошивать один телефон с другого через USB-OTG переходник! |
 
+> [!IMPORTANT]
+> ### 🔬 Статус аппаратного тестирования (Hardware Verification Status)
+> **На текущий момент полноценное физическое тестирование на реальном устройстве (Infinix Hot 30i / Tiger T606 UMS9230) проводилось исключительно на Linux (`x86_64`).**
+> 
+> Поддержка остальных систем и архитектур (**Windows x86_64 / ARM64**, **Linux aarch64**, **macOS**, **Android Termux**):
+> - Реализована на основе детального реверс-инжиниринга оригинальных драйверов и протоколов (Ghidra / REA, анализ `Channel9.dll`, `spd_dump.exe` и `SETUPAPI`);
+> - Успешно собирается кросс-компилятором и проходит автоматические тесты в CI/CD;
+> - Архитектурно **должна работать в штатном режиме**, однако **на реальном физическом оборудовании в этих ОС полноценно пока не тестировалась**.
+> 
+> Если вы запускаете утилиту на Windows, Mac или Raspberry Pi / Android — ваши отзывы, логи и сообщения об ошибках (Issues / Pull Requests) очень приветствуются!
+
 #### Особенности запуска на macOS:
 1. **Сборка `spd_dump` под macOS**: бинарники в `loaders/` скомпилированы под Linux/Windows. На Mac необходимо скомпилировать Mach-O бинарник `spd_dump` через Homebrew:
    ```bash
@@ -173,6 +184,17 @@ loaders/
 - **Windows (`x86_64`, `ARM64`)**: Full support for Spreadtrum `SPRD U2S Diag` COM drivers, `spd_dump.exe`, `Channel9.dll`, and `Channel.ini`.
 - **macOS (`Apple Silicon M1–M4`, `Intel`)**: Native `nusb` works without root via IOKit. Requires building `spd_dump` via Homebrew (`brew install libusb`). Connect phones via an external **USB-C to USB-A (USB 2.0) Hub** to avoid Apple Silicon USB-C re-enumeration resets.
 - **Android / Termux (`ARM64`, Root)**: Can be compiled with `cargo` inside Termux to flash phones using USB OTG.
+
+> [!IMPORTANT]
+> ### 🔬 Hardware Verification Status
+> **Currently, physical verification on real hardware (tested with Infinix Hot 30i / Unisoc Tiger T606 UMS9230) has been carried out exclusively on Linux (`x86_64`).**
+> 
+> Support for other operating systems and architectures (**Windows x86_64 / ARM64**, **Linux aarch64**, **macOS**, **Android Termux**):
+> - Has been engineered using protocol analysis and reverse engineering (`Channel9.dll`, `spd_dump.exe`, Ghidra / REA);
+> - Successfully compiles and passes automated CI/CD checks;
+> - **Architecturally should work as expected**, but **has not yet been comprehensively tested on physical hardware across different OS environments**.
+> 
+> Issue reports, logs, and community feedback for non-Linux x86 platforms are warmly welcomed!
 
 ---
 
