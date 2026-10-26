@@ -1,0 +1,136 @@
+name: Release & Multi-Architecture Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for release (e.g. v0.1.0)'
+        required: true
+        default: 'v0.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.target_name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            target_name: linux-x86_64
+            binary_name: unisoc
+            archive_ext: tar.gz
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            target_name: linux-aarch64
+            binary_name: unisoc
+            archive_ext: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            target_name: windows-x86_64
+            binary_name: unisoc.exe
+            archive_ext: zip
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            target_name: macos-aarch64
+            binary_name: unisoc
+            archive_ext: tar.gz
+          - os: macos-13
+            target: x86_64-apple-darwin
+            target_name: macos-x86_64
+            binary_name: unisoc
+            archive_ext: tar.gz
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package bundle (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          STAGE="unisoc-tool-${{ matrix.target_name }}"
+          mkdir -p "$STAGE/loaders"
+          
+          # Copy built binary
+          if [ -f "target/${{ matrix.target }}/release/unisoc_tool" ]; then
+            cp "target/${{ matrix.target }}/release/unisoc_tool" "$STAGE/unisoc"
+          else
+            cp "target/${{ matrix.target }}/release/unisoc" "$STAGE/unisoc"
+          fi
+          chmod +x "$STAGE/unisoc"
+          
+          # Copy loaders
+          cp -r loaders/* "$STAGE/loaders/"
+          cp README.md LICENSE "$STAGE/" 2>/dev/null || true
+          
+          # Archive
+          tar -czvf "unisoc-tool-${{ matrix.target_name }}.tar.gz" "$STAGE"
+          sha256sum "unisoc-tool-${{ matrix.target_name }}.tar.gz" > "unisoc-tool-${{ matrix.target_name }}.tar.gz.sha256"
+
+      - name: Package bundle (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $Stage = "unisoc-tool-${{ matrix.target_name }}"
+          New-Item -ItemType Directory -Path "$Stage\loaders" -Force | Out-Null
+          
+          if (Test-Path "target\${{ matrix.target }}\release\unisoc_tool.exe") {
+            Copy-Item "target\${{ matrix.target }}\release\unisoc_tool.exe" "$Stage\unisoc.exe" -Force
+          } else {
+            Copy-Item "target\${{ matrix.target }}\release\unisoc.exe" "$Stage\unisoc.exe" -Force
+          }
+          
+          Copy-Item "loaders\*" "$Stage\loaders\" -Recurse -Force
+          Copy-Item "README.md" "$Stage\" -Force -ErrorAction SilentlyContinue
+          Copy-Item "LICENSE" "$Stage\" -Force -ErrorAction SilentlyContinue
+          
+          Compress-Archive -Path "$Stage\*" -DestinationPath "unisoc-tool-${{ matrix.target_name }}.zip" -Force
+          $hash = (Get-FileHash "unisoc-tool-${{ matrix.target_name }}.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  unisoc-tool-${{ matrix.target_name }}.zip" | Out-File "unisoc-tool-${{ matrix.target_name }}.zip.sha256" -Encoding ascii
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-${{ matrix.target_name }}
+          path: |
+            unisoc-tool-${{ matrix.target_name }}.*
+
+  publish:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name || inputs.tag_name }}
+          name: "Release ${{ github.ref_name || inputs.tag_name }}"
+          draft: false
+          prerelease: false
+          files: artifacts/*
+          generate_release_notes: true

@@ -1,0 +1,15 @@
+/target/
+**/*.rs.bk
+*.bin
+*.img
+*.xml
+*.pac
+!loaders/*.bin
+!loaders/*.dll
+!loaders/*.ini
+!loaders/*.exe
+!loaders/spd_dump
+.DS_Store
+*.log
+/nvram_backup/
+/unpacked_rom/

@@ -1,0 +1,93 @@
+#![allow(dead_code)]
+
+// Spreadtrum / Unisoc BSL (Bootloader Serial Link) Protocol Constants
+
+pub const HDLC_FLAG: u8 = 0x7E;
+pub const HDLC_ESCAPE: u8 = 0x7D;
+pub const HDLC_ESCAPE_MASK: u8 = 0x20;
+
+// BSL Command Types (Host -> Device)
+pub const BSL_CMD_CONNECT: u16 = 0x00;
+pub const BSL_CMD_START_DATA: u16 = 0x01;
+pub const BSL_CMD_MIDST_DATA: u16 = 0x02;
+pub const BSL_CMD_END_DATA: u16 = 0x03;
+pub const BSL_CMD_EXEC_DATA: u16 = 0x04;
+pub const BSL_CMD_NORMAL_RESET: u16 = 0x05;
+pub const BSL_CMD_READ_FLASH: u16 = 0x06;
+pub const BSL_CMD_READ_CHIP_TYPE: u16 = 0x07;
+pub const BSL_CMD_READ_NVITEM: u16 = 0x08;
+pub const BSL_CMD_CHANGE_BAUD: u16 = 0x09;
+pub const BSL_CMD_ERASE_FLASH: u16 = 0x0A;
+pub const BSL_CMD_REPARTITION: u16 = 0x0B;
+pub const BSL_CMD_READ_FLASH_TYPE: u16 = 0x0C;
+pub const BSL_CMD_READ_FLASH_INFO: u16 = 0x0D;
+pub const BSL_CMD_READ_SECTOR_SIZE: u16 = 0x0F;
+pub const BSL_CMD_READ_START: u16 = 0x10;
+pub const BSL_CMD_READ_MIDST: u16 = 0x11;
+pub const BSL_CMD_READ_END: u16 = 0x12;
+pub const BSL_CMD_KEEP_CHARGE: u16 = 0x13;
+pub const BSL_CMD_READ_FLASH_UID: u16 = 0x15;
+pub const BSL_CMD_POWER_OFF: u16 = 0x17;
+pub const BSL_CMD_READ_CHIP_UID: u16 = 0x1A;
+pub const BSL_CMD_ENABLE_WRITE_FLASH: u16 = 0x1B;
+pub const BSL_CMD_ENABLE_SECUREBOOT: u16 = 0x1C;
+pub const BSL_CMD_DISABLE_TRANSCODE: u16 = 0x21;
+pub const BSL_CMD_WRITE_DATETIME: u16 = 0x22;
+pub const BSL_CMD_READ_PARTITION: u16 = 0x2D;
+pub const BSL_CMD_END_PROCESS: u16 = 0x7F;
+
+// BSL Response Types (Device -> Host)
+pub const BSL_REP_ACK: u16 = 0x80;
+pub const BSL_REP_VER: u16 = 0x81;
+pub const BSL_REP_INVALID_CMD: u16 = 0x82;
+pub const BSL_REP_UNKNOW_CMD: u16 = 0x83;
+pub const BSL_REP_OPERATION_FAILED: u16 = 0x84;
+pub const BSL_REP_NOT_SUPPORT_BAUDRATE: u16 = 0x85;
+pub const BSL_REP_DOWN_NOT_START: u16 = 0x86;
+pub const BSL_REP_DOWN_MULTI_START: u16 = 0x87;
+pub const BSL_REP_DOWN_EARLY_END: u16 = 0x88;
+pub const BSL_REP_DOWN_DEST_ERROR: u16 = 0x89;
+pub const BSL_REP_DOWN_SIZE_ERROR: u16 = 0x8A;
+pub const BSL_REP_VERIFY_ERROR: u16 = 0x8B;
+pub const BSL_REP_NOT_VERIFY: u16 = 0x8C;
+pub const BSL_PHONE_NOT_ENOUGH_MEMORY: u16 = 0x8D;
+pub const BSL_PHONE_WAIT_INPUT_TIMEOUT: u16 = 0x8E;
+pub const BSL_PHONE_SUCCEED: u16 = 0x8F;
+pub const BSL_PHONE_VALID_BAUDRATE: u16 = 0x90;
+pub const BSL_REP_READ_FLASH: u16 = 0x93;
+pub const BSL_REP_READ_CHIP_TYPE: u16 = 0x94;
+pub const BSL_REP_READ_NVITEM: u16 = 0x95;
+pub const BSL_REP_INCOMPATIBLE_PARTITION: u16 = 0x96;
+pub const BSL_REP_SIGN_VERIFY_ERROR: u16 = 0xA6;
+pub const BSL_REP_READ_CHIP_UID: u16 = 0xAB;
+pub const BSL_REP_READ_PARTITION: u16 = 0xBA;
+pub const BSL_REP_READ_LOG: u16 = 0xBB;
+pub const BSL_REP_UNSUPPORTED_COMMAND: u16 = 0xFE;
+
+pub fn response_name(code: u16) -> &'static str {
+    match code {
+        BSL_REP_ACK => "BSL_REP_ACK (Success)",
+        BSL_REP_VER => "BSL_REP_VER (Version string)",
+        BSL_REP_INVALID_CMD => "BSL_REP_INVALID_CMD",
+        BSL_REP_UNKNOW_CMD => "BSL_REP_UNKNOW_CMD",
+        BSL_REP_OPERATION_FAILED => "BSL_REP_OPERATION_FAILED",
+        BSL_REP_NOT_SUPPORT_BAUDRATE => "BSL_REP_NOT_SUPPORT_BAUDRATE",
+        BSL_REP_DOWN_NOT_START => "BSL_REP_DOWN_NOT_START",
+        BSL_REP_DOWN_MULTI_START => "BSL_REP_DOWN_MULTI_START",
+        BSL_REP_DOWN_EARLY_END => "BSL_REP_DOWN_EARLY_END",
+        BSL_REP_DOWN_DEST_ERROR => "BSL_REP_DOWN_DEST_ERROR",
+        BSL_REP_DOWN_SIZE_ERROR => "BSL_REP_DOWN_SIZE_ERROR",
+        BSL_REP_VERIFY_ERROR => "BSL_REP_VERIFY_ERROR",
+        BSL_REP_NOT_VERIFY => "BSL_REP_NOT_VERIFY",
+        BSL_REP_READ_FLASH => "BSL_REP_READ_FLASH",
+        BSL_REP_READ_CHIP_TYPE => "BSL_REP_READ_CHIP_TYPE",
+        BSL_REP_READ_NVITEM => "BSL_REP_READ_NVITEM",
+        BSL_REP_INCOMPATIBLE_PARTITION => "BSL_REP_INCOMPATIBLE_PARTITION",
+        BSL_REP_SIGN_VERIFY_ERROR => "BSL_REP_SIGN_VERIFY_ERROR",
+        BSL_REP_READ_CHIP_UID => "BSL_REP_READ_CHIP_UID",
+        BSL_REP_READ_PARTITION => "BSL_REP_READ_PARTITION",
+        BSL_REP_READ_LOG => "BSL_REP_READ_LOG",
+        BSL_REP_UNSUPPORTED_COMMAND => "BSL_REP_UNSUPPORTED_COMMAND",
+        _ => "UNKNOWN_RESPONSE",
+    }
+}
