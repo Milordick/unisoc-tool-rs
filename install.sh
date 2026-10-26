@@ -33,6 +33,7 @@ IS_TERMUX=false
 if [[ -d "/data/data/com.termux/files/usr" ]] || [[ "${PREFIX:-}" == *"/com.termux/"* ]]; then
     IS_TERMUX=true
     OS="android"
+    PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 fi
 
 case "${OS}" in
@@ -142,6 +143,16 @@ fi
 # Create symlink in bin directory
 ln -sf "${INSTALL_DIR}/unisoc" "${BIN_DIR}/unisoc"
 
+# For Termux (Android): create a root helper wrapper so standard Magisk/KSU 'su' can run it
+if [ "${IS_TERMUX}" = true ]; then
+    cat << EOF > "${BIN_DIR}/su-unisoc"
+#!/data/data/com.termux/files/usr/bin/sh
+# Helper to execute unisoc with root privileges and Termux PATH
+exec su -c "PATH=\"${BIN_DIR}:\\\$PATH\" '${BIN_DIR}/unisoc' \"\\\$@\""
+EOF
+    chmod +x "${BIN_DIR}/su-unisoc"
+fi
+
 # 5. Linux udev rules installation
 if [[ "${TARGET_OS}" == "linux" ]] && [[ "${IS_TERMUX}" == false ]]; then
     if [ "$(id -u)" -eq 0 ]; then
@@ -174,9 +185,15 @@ if [ "${PATH_OK}" = false ]; then
     echo ""
 fi
 
-echo -e "Для запуска графического интерфейса введите:"
-echo -e "  ${GREEN}${BOLD}unisoc${NC}"
-echo ""
+if [ "${IS_TERMUX}" = true ]; then
+    echo -e "Для запуска с root-правами на Android (Termux):"
+    echo -e "  ${GREEN}${BOLD}su-unisoc${NC}  или  ${GREEN}${BOLD}tsu -c unisoc${NC}"
+    echo ""
+else
+    echo -e "Для запуска графического интерфейса введите:"
+    echo -e "  ${GREEN}${BOLD}unisoc${NC}"
+    echo ""
+fi
 echo -e "Для проверки обновлений:"
 echo -e "  ${BLUE}unisoc update${NC}"
 echo ""

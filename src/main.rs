@@ -234,8 +234,9 @@ fn is_root() -> bool {
         .unwrap_or(false)
 }
 
-/// Re-launch this binary as root via sudo (or pkexec) on Linux, forwarding all args.
-/// Raw USB (libusb/usbfs) access to VID 1782 needs root on Linux without a udev rule.
+/// Re-launch this binary as root via sudo, tsu, su, or pkexec on Linux/Android.
+/// Raw USB (libusb/usbfs) access to VID 1782 needs root on Linux without a udev rule,
+/// and always requires root on Android (Termux) due to SELinux.
 /// On Windows and macOS (IOKit), USB access does not use /proc or udev rules.
 #[cfg(target_os = "linux")]
 fn ensure_root() {
@@ -244,16 +245,35 @@ fn ensure_root() {
     }
     let exe = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("unisoc"));
     let args: Vec<String> = std::env::args().skip(1).collect();
-    eprintln!("[AUTH] Root required for USB access — restarting via sudo...");
+    eprintln!("[AUTH] Root required for USB access — elevating to root...");
     let have = |b: &str| {
         std::process::Command::new("which").arg(b).output().map(|o| o.status.success()).unwrap_or(false)
     };
     let status = if have("sudo") {
         std::process::Command::new("sudo")
-            .arg("--preserve-env=TERM,COLORTERM,LANG,LC_ALL,HOME,PATH")
+            .arg("--preserve-env=TERM,COLORTERM,LANG,LC_ALL,HOME,PATH,PREFIX")
             .arg("UNISOC_NO_ROOT=1")
             .arg(&exe)
             .args(&args)
+            .status()
+    } else if have("tsu") {
+        // Official Termux root wrapper (preserves Termux PATH and environment)
+        std::process::Command::new("tsu")
+            .env("UNISOC_NO_ROOT", "1")
+            .arg(&exe)
+            .args(&args)
+            .status()
+    } else if have("su") {
+        // Android root shell fallback (Magisk / KernelSU / APatch)
+        let termux_path = "/data/data/com.termux/files/usr/bin";
+        let mut full_cmd = format!("UNISOC_NO_ROOT=1 PATH=\"{}:$PATH\" '{}'", termux_path, exe.display());
+        for a in &args {
+            full_cmd.push(' ');
+            full_cmd.push_str(a);
+        }
+        std::process::Command::new("su")
+            .arg("-c")
+            .arg(full_cmd)
             .status()
     } else {
         std::process::Command::new("pkexec")

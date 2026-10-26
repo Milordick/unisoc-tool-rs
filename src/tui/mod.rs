@@ -67,28 +67,77 @@ pub const OPERATIONS: &[(&str, &str)] = &[
     ("Power Off Device", "Send BSL_CMD_POWER_OFF to safely shut down"),
 ];
 
-pub fn find_spd_dump() -> Option<PathBuf> {
-    #[cfg(windows)]
-    let candidates = [
-        PathBuf::from("./loaders/spd_dump.exe"),
-        PathBuf::from("./spd_dump.exe"),
-        PathBuf::from("../loaders/spd_dump.exe"),
-        PathBuf::from("../spd_dump.exe"),
-    ];
-    #[cfg(not(windows))]
-    let candidates = [
-        PathBuf::from("/home/coshick/infinix_dump/spd_dump"),
-        PathBuf::from("./loaders/spd_dump"),
-        PathBuf::from("./spd_dump"),
-        PathBuf::from("../loaders/spd_dump"),
-        PathBuf::from("../spd_dump"),
-        PathBuf::from("../infinix_dump/spd_dump"),
-    ];
-    for c in &candidates {
-        if c.is_file() {
-            return Some(c.clone());
+/// Returns a list of directories where application assets and loaders are stored,
+/// including current executable path (following symlinks), Termux opt path,
+/// user share path, system opt, and current working directory.
+pub fn get_app_dirs() -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+
+    // 1. Directory of current running executable (following symlinks)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Ok(canon) = std::fs::canonicalize(&exe) {
+            if let Some(p) = canon.parent() {
+                dirs.push(p.to_path_buf());
+                dirs.push(p.join("loaders"));
+            }
+        }
+        if let Some(p) = exe.parent() {
+            dirs.push(p.to_path_buf());
+            dirs.push(p.join("loaders"));
         }
     }
+
+    // 2. Relative paths from current working directory
+    dirs.push(PathBuf::from("./loaders"));
+    dirs.push(PathBuf::from("."));
+    dirs.push(PathBuf::from("../loaders"));
+    dirs.push(PathBuf::from(".."));
+
+    // 3. Android / Termux paths ($PREFIX/opt/unisoc-tool, /data/data/com.termux/files/usr/...)
+    if let Ok(prefix) = std::env::var("PREFIX") {
+        let p = PathBuf::from(prefix);
+        dirs.push(p.join("opt/unisoc-tool"));
+        dirs.push(p.join("opt/unisoc-tool/loaders"));
+        dirs.push(p.join("bin"));
+    }
+    dirs.push(PathBuf::from("/data/data/com.termux/files/usr/opt/unisoc-tool"));
+    dirs.push(PathBuf::from("/data/data/com.termux/files/usr/opt/unisoc-tool/loaders"));
+    dirs.push(PathBuf::from("/data/data/com.termux/files/usr/bin"));
+
+    // 4. Linux / Unix home and system paths
+    if let Ok(home) = std::env::var("HOME") {
+        let h = PathBuf::from(home);
+        dirs.push(h.join(".local/share/unisoc-tool"));
+        dirs.push(h.join(".local/share/unisoc-tool/loaders"));
+        dirs.push(h.join("infinix_dump"));
+        dirs.push(h.join(".local/bin"));
+    }
+    dirs.push(PathBuf::from("/opt/unisoc-tool"));
+    dirs.push(PathBuf::from("/opt/unisoc-tool/loaders"));
+    dirs.push(PathBuf::from("/usr/local/bin"));
+    dirs.push(PathBuf::from("/var/mnt/storage/downloads/ums9230_Infinix_Hot_30i_base230522"));
+
+    // 5. Windows paths
+    if let Ok(local_app_data) = std::env::var("LOCALAPPDATA") {
+        let l = PathBuf::from(local_app_data);
+        dirs.push(l.join("unisoc-tool"));
+        dirs.push(l.join("unisoc-tool/loaders"));
+    }
+
+    dirs
+}
+
+pub fn find_spd_dump() -> Option<PathBuf> {
+    for d in get_app_dirs() {
+        #[cfg(windows)]
+        let f = d.join("spd_dump.exe");
+        #[cfg(not(windows))]
+        let f = d.join("spd_dump");
+        if f.is_file() {
+            return std::fs::canonicalize(&f).ok().or(Some(f));
+        }
+    }
+
     #[cfg(windows)]
     let lookup_cmd = ("where", "spd_dump.exe");
     #[cfg(not(windows))]
@@ -98,7 +147,8 @@ pub fn find_spd_dump() -> Option<PathBuf> {
             if let Some(first_line) = String::from_utf8_lossy(&out.stdout).lines().next() {
                 let p = first_line.trim();
                 if !p.is_empty() {
-                    return Some(PathBuf::from(p));
+                    let pb = PathBuf::from(p);
+                    return std::fs::canonicalize(&pb).ok().or(Some(pb));
                 }
             }
         }
@@ -107,40 +157,29 @@ pub fn find_spd_dump() -> Option<PathBuf> {
 }
 
 pub fn find_fdl_files() -> Option<(PathBuf, PathBuf)> {
-    // Prefer SLA-unlocked fdl1-dl.bin / fdl2-dl.bin over stock SLA-locked fdl2.bin
-    let f1_candidates = [
-        PathBuf::from("/home/coshick/infinix_dump/fdl1-dl.bin"),
-        PathBuf::from("./loaders/fdl1-dl.bin"),
-        PathBuf::from("./fdl/fdl1-dl.bin"),
-        PathBuf::from("./fdl1-dl.bin"),
-        PathBuf::from("../loaders/fdl1-dl.bin"),
-        PathBuf::from("/var/mnt/storage/downloads/ums9230_Infinix_Hot_30i_base230522/fdl1-dl.bin"),
-        PathBuf::from("/home/coshick/infinix_dump/fdl1.bin"),
-        PathBuf::from("./loaders/fdl1.bin"),
-        PathBuf::from("./fdl/fdl1.bin"),
-        PathBuf::from("./fdl1.bin"),
-        PathBuf::from("../infinix_dump/fdl1.bin"),
-    ];
-    let f2_candidates = [
-        PathBuf::from("/home/coshick/infinix_dump/fdl2-dl.bin"),
-        PathBuf::from("./loaders/fdl2-dl.bin"),
-        PathBuf::from("./fdl/fdl2-dl.bin"),
-        PathBuf::from("./fdl2-dl.bin"),
-        PathBuf::from("../loaders/fdl2-dl.bin"),
-        PathBuf::from("/var/mnt/storage/downloads/ums9230_Infinix_Hot_30i_base230522/fdl2-dl.bin"),
-        PathBuf::from("/home/coshick/infinix_dump/fdl2.bin"),
-        PathBuf::from("./loaders/fdl2.bin"),
-        PathBuf::from("./fdl/fdl2.bin"),
-        PathBuf::from("./fdl2.bin"),
-        PathBuf::from("../infinix_dump/fdl2.bin"),
-    ];
-    let f1 = f1_candidates.into_iter().find(|p| p.is_file());
-    let f2 = f2_candidates.into_iter().find(|p| p.is_file());
-    if let (Some(a), Some(b)) = (f1, f2) {
-        Some((a, b))
-    } else {
-        None
+    // 1. First priority: Prefer SLA-unlocked fdl1-dl.bin / fdl2-dl.bin
+    for d in get_app_dirs() {
+        let f1 = d.join("fdl1-dl.bin");
+        let f2 = d.join("fdl2-dl.bin");
+        if f1.is_file() && f2.is_file() {
+            let a = std::fs::canonicalize(&f1).unwrap_or(f1);
+            let b = std::fs::canonicalize(&f2).unwrap_or(f2);
+            return Some((a, b));
+        }
     }
+
+    // 2. Second priority: Standard fdl1.bin / fdl2.bin
+    for d in get_app_dirs() {
+        let f1 = d.join("fdl1.bin");
+        let f2 = d.join("fdl2.bin");
+        if f1.is_file() && f2.is_file() {
+            let a = std::fs::canonicalize(&f1).unwrap_or(f1);
+            let b = std::fs::canonicalize(&f2).unwrap_or(f2);
+            return Some((a, b));
+        }
+    }
+
+    None
 }
 
 fn find_candidate_pac() -> Option<PathBuf> {
@@ -435,7 +474,8 @@ impl TuiApp {
         self.add_log("⏳ Ожидание телефона (выключите, зажмите Vol-, вставьте USB)... [Esc — отмена]".to_string());
         self.redraw_if_active(out);
 
-        let bin_str = spd_dump_bin.to_string_lossy().to_string();
+        let bin_path = std::fs::canonicalize(spd_dump_bin).unwrap_or_else(|_| spd_dump_bin.to_path_buf());
+        let bin_str = bin_path.to_string_lossy().to_string();
         let mut full_cmd = vec![bin_str];
         for a in args {
             full_cmd.push(a.to_string());
@@ -665,13 +705,12 @@ impl TuiApp {
                 for dep in ["Channel9.dll", "Channel.ini"] {
                     let dst = dir.join(dep);
                     if !dst.is_file() {
-                        let candidates = [
-                            PathBuf::from("./loaders").join(dep),
-                            PathBuf::from(".").join(dep),
-                            PathBuf::from("/var/mnt/storage/downloads/ums9230_Infinix_Hot_30i_base230522").join(dep),
-                        ];
-                        if let Some(src) = candidates.iter().find(|p| p.is_file()) {
-                            let _ = std::fs::copy(src, &dst);
+                        for d in get_app_dirs() {
+                            let src = d.join(dep);
+                            if src.is_file() {
+                                let _ = std::fs::copy(&src, &dst);
+                                break;
+                            }
                         }
                     }
                 }
@@ -684,15 +723,12 @@ impl TuiApp {
             if let Some(dir) = spd_bin.parent() {
                 let target_payload = dir.join("custom_exec_no_verify_65015f08.bin");
                 if !target_payload.is_file() {
-                    let payload_candidates = [
-                        PathBuf::from("./loaders/custom_exec_no_verify_65015f08.bin"),
-                        PathBuf::from("./fdl/custom_exec_no_verify_65015f08.bin"),
-                        PathBuf::from("./custom_exec_no_verify_65015f08.bin"),
-                        PathBuf::from("/home/coshick/infinix_dump/custom_exec_no_verify_65015f08.bin"),
-                        PathBuf::from("/var/mnt/storage/downloads/ums9230_Infinix_Hot_30i_base230522/custom_exec_no_verify_65015f08.bin"),
-                    ];
-                    if let Some(src_payload) = payload_candidates.iter().find(|p| p.is_file()) {
-                        let _ = std::fs::copy(src_payload, &target_payload);
+                    for d in get_app_dirs() {
+                        let src_payload = d.join("custom_exec_no_verify_65015f08.bin");
+                        if src_payload.is_file() {
+                            let _ = std::fs::copy(&src_payload, &target_payload);
+                            break;
+                        }
                     }
                 }
                 if target_payload.is_file() {
